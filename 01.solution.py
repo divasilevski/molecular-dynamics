@@ -5,12 +5,12 @@ from vpython import *
 
 # CONSTANTS
 SIGMA = 0.272
-TEMP = 27.1
+TEMP = 47.0
 CELL_SIZE = 1.2 * SIGMA
 RANDOM_AREA = 0.8 * SIGMA
 CELL_IDENT = (CELL_SIZE - RANDOM_AREA) / 2
 
-GRID_SIZE = 10
+GRID_SIZE = 2
 N_ATOM = GRID_SIZE ** 3
 
 ATOM_RADIUS = CELL_SIZE / 10
@@ -91,14 +91,52 @@ scene = canvas(width=CAMERA_SIZE, height=CAMERA_SIZE)
 scene.camera.pos = vector(CAMERA_POS, CAMERA_POS, 0)
 
 coords = initPositions()  # массив радиус-векторов частиц
-boost = initAcceleration()  # массив ускорений
+acceleration = initAcceleration()  # массив ускорений
 speed = initSpeed()  # массив скоростей
 forces = initForces()  # массив векторов сил, действующих на каждую частицу
 
 atoms = createAtomsByPos(coords)
+#energy = 0
 
-print(speed)
 # LIFECYCLE
-scene.waitfor('click')
-for i in range(ITERATIONS):
-    print(i)
+
+for iter in range(ITERATIONS):
+    
+    scene.waitfor('click')
+
+    
+    for i in range(N_ATOM - 1):
+        print("coords i",  coords[i])
+        xij = coords[i] - coords[i+1:]
+        print("xij", xij)
+        
+        xij[xij < -CELL_SIZE / 2] += CELL_SIZE
+        xij[xij > CELL_SIZE / 2] -= CELL_SIZE
+        
+        rsq = np.sum(xij*xij, axis=1)
+        rsqinv = 1.0/rsq
+        r6inv = rsqinv*rsqinv*rsqinv
+
+        #enr=4.0*r6inv*(r6inv-1.0)
+        force_ = np.einsum('ki,k->ki', xij, rsqinv*48*r6inv*(r6inv-0.5))
+
+        forces[i] += np.sum(force_, axis=0)
+        forces[i+1:] -= force_
+        #energy=energy+enr
+# вычисление (безразмерных) ускорений атомов системы
+    acceleration = forces * INTEGRATION_STEP * INTEGRATION_STEP / 2
+# вычисление скоростей атомов
+    speed += 2.0*acceleration
+# новые положения частиц
+    coords += speed + acceleration
+    coords[coords < 0] += CELL_SIZE
+    coords[coords > CELL_SIZE] -= CELL_SIZE
+
+    print(coords[0], speed[0], acceleration[0])
+    changePosAtoms(atoms, coords)
+# один раз за 5 (kstep) шагов результаты о координатах частиц выводятся в файл,
+# и информация о номере шага выводится на экран
+# для ускорения расчетов экзаменационного задания вывод в файл можно закомментировать
+    
+# Обнуляем массив сил
+    forces[:, :] = 0
