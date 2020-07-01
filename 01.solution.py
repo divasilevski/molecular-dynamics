@@ -60,7 +60,7 @@ def initSpeed():
     velsq = np.sum(v_ ** 2)
     aheat = 3.e0*N_ATOM * INTEGRATION_STEP ** 2 * TEMP
     factor = np.sqrt(aheat / velsq)
-    
+
     return v_ * factor
 
 
@@ -69,7 +69,43 @@ def initForces():
     return np.zeros(N_ATOM*3).reshape(N_ATOM, 3)
 
 
+def calculation(coords):
+    for i in range(N_ATOM - 1):
+        # Вычисляется разность векторов между
+        # i атомом и остальными, при этом i обрезается
+        ijCoord = coords[i] - coords[i+1:]
+
+        # Если расстояние между координатой атомов меньше половины ячейки
+        # то расстояние увеличивается на ячейку
+        # иначе уменьшается (берется переодический образ)
+        ijCoord[ijCoord < -CELL_SIZE / 2] += CELL_SIZE
+        ijCoord[ijCoord > CELL_SIZE / 2] -= CELL_SIZE
+
+        # Вычисляем вспомог расстояния между атомами R
+        dist2 = np.sum(ijCoord * ijCoord, axis=1)
+        dist2Inv = 1.0 / dist2
+        dist6Inv = dist2Inv * dist2Inv * dist2Inv
+
+        # вектор сил взаимодействия между i j атомами
+        # ВЫчисляем вектор межатомных сил
+        ff = 48 * dist2Inv * dist6Inv * (dist6Inv - 0.5)
+
+        # Суммируем вектор межатомных сил с разностью координат
+        # Получится n - i по 3
+        # Каждое значение из ijCoord мы умножаем на строку в ff
+        force_ = np.einsum('ki,k->ki', ijCoord, ff)
+
+        # Добавляем i тую силу как сумму сил остальных
+        forces[i] += np.sum(force_, axis=0)
+
+        # Добавляем i в матрицу остальные силы
+        forces[i+1:] -= force_
+
+    return forces
+
 # VPYTHON FUNCTIONS
+
+
 def createAtomsByPos(positions):
     """ Создание сфер-атомов """
     points = []
@@ -101,28 +137,12 @@ atoms = createAtomsByPos(coords)
 # LIFECYCLE
 
 for iter in range(ITERATIONS):
-    
+
     scene.waitfor('click')
 
-    
-    for i in range(N_ATOM - 1):
-        print("coords i",  coords[i])
-        xij = coords[i] - coords[i+1:]
-        print("xij", xij)
-        
-        xij[xij < -CELL_SIZE / 2] += CELL_SIZE
-        xij[xij > CELL_SIZE / 2] -= CELL_SIZE
-        
-        rsq = np.sum(xij*xij, axis=1)
-        rsqinv = 1.0/rsq
-        r6inv = rsqinv*rsqinv*rsqinv
+    forces = calculation(coords)
 
-        #enr=4.0*r6inv*(r6inv-1.0)
-        force_ = np.einsum('ki,k->ki', xij, rsqinv*48*r6inv*(r6inv-0.5))
-
-        forces[i] += np.sum(force_, axis=0)
-        forces[i+1:] -= force_
-        #energy=energy+enr
+    # energy=energy+enr
 # вычисление (безразмерных) ускорений атомов системы
     acceleration = forces * INTEGRATION_STEP * INTEGRATION_STEP / 2
 # вычисление скоростей атомов
@@ -137,6 +157,6 @@ for iter in range(ITERATIONS):
 # один раз за 5 (kstep) шагов результаты о координатах частиц выводятся в файл,
 # и информация о номере шага выводится на экран
 # для ускорения расчетов экзаменационного задания вывод в файл можно закомментировать
-    
+
 # Обнуляем массив сил
     forces[:, :] = 0
