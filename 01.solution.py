@@ -20,6 +20,7 @@ PENTA_TIME = 3
 INTEGRATION_STEP = 0.001
 ITERATIONS = int(PENTA_TIME / INTEGRATION_STEP)
 
+
 # FUNCTIONS
 def calcPosByCell(cellPos):
     """ Рассчитывает координаты атома по положению ячейки """
@@ -45,6 +46,16 @@ def initPositions():
     return initPos
 
 
+def initAcceleration():
+    """ Строит начальные ускорения """
+    return np.empty(N_ATOM*3).reshape(N_ATOM, 3)
+
+
+def initForces():
+    """ Строит начальный массив векторов сил """
+    return np.zeros(N_ATOM*3).reshape(N_ATOM, 3)
+
+
 # VPYTHON FUNCTIONS
 def createAtomsByPos(positions):
     """ Создание сфер-атомов """
@@ -56,6 +67,7 @@ def createAtomsByPos(positions):
 
 
 def changePosAtoms(atoms, positions):
+    """ Изменение позиций сфер-атомов """
     for i in range(len(atoms)):
         P = positions[i]
         atoms[i].pos = vector(P[0], P[1], P[2])
@@ -65,11 +77,13 @@ def changePosAtoms(atoms, positions):
 scene = canvas(width=CAMERA_SIZE, height=CAMERA_SIZE)
 scene.camera.pos = vector(CAMERA_POS, CAMERA_POS, 0)
 
-coords = initPositions()
+coords = initPositions()  # массив радиус-векторов частиц
+boost = initAcceleration()  # массив ускорений
+forces = initForces()  # массив векторов сил, действующих на каждую частицу
+
 atoms = createAtomsByPos(coords)
 
-
 # LIFECYCLE
-#scene.waitfor('click')
+# scene.waitfor('click')
 for i in range(ITERATIONS):
     print(i)
