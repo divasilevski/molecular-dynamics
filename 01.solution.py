@@ -15,7 +15,11 @@ ATOM_RADIUS = 1.2 * SIGMA / 10
 def calcPosByCell(cellPos):
     """ Рассчитывает координаты атома по положению ячейки """
 
-    return 1.2 * SIGMA * cellPos + (1.2 - 0.6) / 2 * SIGMA * np.array([1, 1, 1])
+    initCoord = 1.2 * SIGMA * cellPos
+    identArray = 0.2 * SIGMA * np.ones(3)
+    randomArray = np.random.uniform(0, 0.8 * SIGMA, 3)
+
+    return initCoord + identArray + randomArray
 
 
 def initPositions():
