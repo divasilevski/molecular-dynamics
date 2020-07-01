@@ -3,21 +3,30 @@ import numpy as np
 from vpython import *
 
 
-# CONSTANTS Вариант 5 (Ne)
-GRID_SIZE = 10
+# CONSTANTS
 SIGMA = 0.272
+CELL_SIZE = 1.2 * SIGMA
+RANDOM_AREA = 0.8 * SIGMA
+CELL_IDENT = (CELL_SIZE - RANDOM_AREA) / 2
+
+GRID_SIZE = 10
 N_ATOM = GRID_SIZE ** 3
 
-ATOM_RADIUS = 1.2 * SIGMA / 10
+ATOM_RADIUS = CELL_SIZE / 10
+CAMERA_SIZE = 500
+CAMERA_POS = CELL_SIZE * GRID_SIZE / 2
 
+PENTA_TIME = 3
+INTEGRATION_STEP = 0.001
+ITERATIONS = int(PENTA_TIME / INTEGRATION_STEP)
 
 # FUNCTIONS
 def calcPosByCell(cellPos):
     """ Рассчитывает координаты атома по положению ячейки """
 
-    initCoord = 1.2 * SIGMA * cellPos
-    identArray = 0.2 * SIGMA * np.ones(3)
-    randomArray = np.random.uniform(0, 0.8 * SIGMA, 3)
+    initCoord = CELL_SIZE * cellPos
+    identArray = CELL_IDENT * np.ones(3)
+    randomArray = np.random.uniform(0, RANDOM_AREA, 3)
 
     return initCoord + identArray + randomArray
 
@@ -37,21 +46,30 @@ def initPositions():
 
 
 # VPYTHON FUNCTIONS
-def createPoints(positions):
+def createAtomsByPos(positions):
+    """ Создание сфер-атомов """
     points = []
-    for p in positions:
-        points.append(sphere(pos=vector(p[0], p[1], p[2]), radius=ATOM_RADIUS))
+    for P in positions:
+        P = vector(P[0], P[1], P[2])
+        points.append(sphere(pos=P, radius=ATOM_RADIUS))
     return points
 
 
-def changePosition(points, positions):
-    for i in range(len(points)):
-        p = positions[i]
-        points[i].pos = vector(p[0], p[1], p[2])
+def changePosAtoms(atoms, positions):
+    for i in range(len(atoms)):
+        P = positions[i]
+        atoms[i].pos = vector(P[0], P[1], P[2])
+
+
+# PREPARATION
+scene = canvas(width=CAMERA_SIZE, height=CAMERA_SIZE)
+scene.camera.pos = vector(CAMERA_POS, CAMERA_POS, 0)
+
+coords = initPositions()
+atoms = createAtomsByPos(coords)
 
 
 # LIFECYCLE
-scene = canvas(width=500, height=500)
-scene.camera.pos = vector(0.6 * SIGMA * GRID_SIZE, 0.6 * SIGMA * GRID_SIZE, 0)
-
-points = createPoints(initPositions())
+#scene.waitfor('click')
+for i in range(ITERATIONS):
+    print(i)
