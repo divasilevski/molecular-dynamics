@@ -40,21 +40,18 @@ def initPositions():
 def createPoints(positions):
     points = []
     for p in positions:
-        p = vector(p[0], p[1], p[2])
-        points.append(sphere(pos=p, radius=ATOM_RADIUS))
+        points.append(sphere(pos=vector(p[0], p[1], p[2]), radius=ATOM_RADIUS))
     return points
 
 
 def changePosition(points, positions):
     for i in range(len(points)):
         p = positions[i]
-        p = vector(p[0], p[1], p[2])
-        points[i].pos = p
+        points[i].pos = vector(p[0], p[1], p[2])
 
 
 # LIFECYCLE
 scene = canvas(width=500, height=500)
-scene.camera.pos = vector(3, 3, 3)
-scene.autoscale = False
+scene.camera.pos = vector(0.6 * SIGMA * GRID_SIZE, 0.6 * SIGMA * GRID_SIZE, 0)
 
 points = createPoints(initPositions())
