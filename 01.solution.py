@@ -5,6 +5,7 @@ from vpython import *
 
 # CONSTANTS
 SIGMA = 0.272
+TEMP = 27.1
 CELL_SIZE = 1.2 * SIGMA
 RANDOM_AREA = 0.8 * SIGMA
 CELL_IDENT = (CELL_SIZE - RANDOM_AREA) / 2
@@ -47,12 +48,24 @@ def initPositions():
 
 
 def initAcceleration():
-    """ Строит начальные ускорения """
+    """ Строит пустые начальные ускорения """
     return np.empty(N_ATOM*3).reshape(N_ATOM, 3)
 
 
+def initSpeed():
+    """ Строит случайные начальные скорости """
+
+    v_ = np.random.uniform(-1, 1, (N_ATOM, 3))
+    # нормировка амплитуд скоростей, чтобы кинетическая энергия соотвествовала начальной температуре
+    velsq = np.sum(v_ ** 2)
+    aheat = 3.e0*N_ATOM * INTEGRATION_STEP ** 2 * TEMP
+    factor = np.sqrt(aheat / velsq)
+    
+    return v_ * factor
+
+
 def initForces():
-    """ Строит начальный массив векторов сил """
+    """ Строит нулевой массив векторов сил """
     return np.zeros(N_ATOM*3).reshape(N_ATOM, 3)
 
 
@@ -79,11 +92,13 @@ scene.camera.pos = vector(CAMERA_POS, CAMERA_POS, 0)
 
 coords = initPositions()  # массив радиус-векторов частиц
 boost = initAcceleration()  # массив ускорений
+speed = initSpeed()  # массив скоростей
 forces = initForces()  # массив векторов сил, действующих на каждую частицу
 
 atoms = createAtomsByPos(coords)
 
+print(speed)
 # LIFECYCLE
-# scene.waitfor('click')
+scene.waitfor('click')
 for i in range(ITERATIONS):
     print(i)
