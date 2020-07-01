@@ -8,40 +8,45 @@ GRID_SIZE = 10
 SIGMA = 0.272
 N_ATOM = GRID_SIZE ** 3
 
+ATOM_RADIUS = 1.2 * SIGMA / 10
+
 
 # FUNCTIONS
 def calcPosByCell(cellPos):
-    """ Рассчитывает координаты атома по положению ячейки"""
+    """ Рассчитывает координаты атома по положению ячейки """
 
-    return 1.2*SIGMA*cellPos + 0.6*SIGMA*np.array([1,1,1])
+    return 1.2 * SIGMA * cellPos + (1.2 - 0.6) / 2 * SIGMA * np.array([1, 1, 1])
 
 
 def initPositions():
     """ Строит первоначальное расположение атомов """
+    initPos = np.empty(N_ATOM * 3).reshape(N_ATOM, 3)  # Выделяем память
 
-    initPos = np.empty(N_ATOM*3).reshape(N_ATOM, 3)  # Выделяем память
-
+    t = 0
     for x in range(GRID_SIZE):
         for y in range(GRID_SIZE):
             for z in range(GRID_SIZE):
-                initPos[x+y+z] = calcPosByCell(np.array([x, y, z]))
+                initPos[t] = calcPosByCell(np.array([x, y, z]))
+                t += 1
 
     return initPos
 
 
-# VPYTHON
+# VPYTHON FUNCTIONS
 def createPoints(positions):
     points = []
     for p in positions:
         p = vector(p[0], p[1], p[2])
-        points.append(sphere(pos=p, radius=0.1))
+        points.append(sphere(pos=p, radius=ATOM_RADIUS))
     return points
+
 
 def changePosition(points, positions):
     for i in range(len(points)):
         p = positions[i]
         p = vector(p[0], p[1], p[2])
         points[i].pos = p
+
 
 # LIFECYCLE
 scene = canvas(width=500, height=500)
