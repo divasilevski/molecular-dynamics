@@ -119,10 +119,14 @@ maxeq = 1001
 # в данном варианте программе не используется
 energy = 0
 
-scene.waitfor('click')
+
 # Цикл вычисления сил, действующих на частицу
 start_time = time.time()
 for ktime in range(maxeq):
+    
+    scene.waitfor('click')
+    
+    
     for i in range(N_ATOM-1):
         xij = x_[i] - x_[i+1:]
         xij[xij < -cubeh] += cube
@@ -141,6 +145,7 @@ for ktime in range(maxeq):
 
 # вычисление (безразмерных) ускорений атомов системы
     a_ = f_*stepsqh
+    
 # вычисление скоростей атомов
     v_ += 2.0*a_
 # новые положения частиц

@@ -4,13 +4,14 @@ from vpython import *
 
 
 # CONSTANTS
-SIGMA = 0.272
+SIGMA = 0.272 #0.272
 TEMP = 47.0
 CELL_SIZE = 1.2 * SIGMA
 RANDOM_AREA = 0.8 * SIGMA
 CELL_IDENT = (CELL_SIZE - RANDOM_AREA) / 2
 
-GRID_SIZE = 2
+GRID_SIZE = 10
+COUB_SIZE = CELL_SIZE * GRID_SIZE
 N_ATOM = GRID_SIZE ** 3
 
 ATOM_RADIUS = CELL_SIZE / 10
@@ -18,7 +19,7 @@ CAMERA_SIZE = 500
 CAMERA_POS = CELL_SIZE * GRID_SIZE / 2
 
 PENTA_TIME = 3
-INTEGRATION_STEP = 0.001
+INTEGRATION_STEP = 0.00000004
 ITERATIONS = int(PENTA_TIME / INTEGRATION_STEP)
 
 
@@ -78,8 +79,8 @@ def calculation(coords):
         # Если расстояние между координатой атомов меньше половины ячейки
         # то расстояние увеличивается на ячейку
         # иначе уменьшается (берется переодический образ)
-        ijCoord[ijCoord < -CELL_SIZE / 2] += CELL_SIZE
-        ijCoord[ijCoord > CELL_SIZE / 2] -= CELL_SIZE
+        ijCoord[ijCoord < -COUB_SIZE / 2] += COUB_SIZE
+        ijCoord[ijCoord > COUB_SIZE / 2] -= COUB_SIZE
 
         # Вычисляем вспомог расстояния между атомами R
         dist2 = np.sum(ijCoord * ijCoord, axis=1)
@@ -103,9 +104,8 @@ def calculation(coords):
 
     return forces
 
+
 # VPYTHON FUNCTIONS
-
-
 def createAtomsByPos(positions):
     """ Создание сфер-атомов """
     points = []
@@ -125,6 +125,7 @@ def changePosAtoms(atoms, positions):
 # PREPARATION
 scene = canvas(width=CAMERA_SIZE, height=CAMERA_SIZE)
 scene.camera.pos = vector(CAMERA_POS, CAMERA_POS, 0)
+scene.autoscale = False
 
 coords = initPositions()  # массив радиус-векторов частиц
 acceleration = initAcceleration()  # массив ускорений
@@ -138,21 +139,26 @@ atoms = createAtomsByPos(coords)
 
 for iter in range(ITERATIONS):
 
-    scene.waitfor('click')
+    #scene.waitfor('click')
 
     forces = calculation(coords)
 
     # energy=energy+enr
-# вычисление (безразмерных) ускорений атомов системы
+    
+    # вычисление (безразмерных) ускорений атомов системы
     acceleration = forces * INTEGRATION_STEP * INTEGRATION_STEP / 2
-# вычисление скоростей атомов
-    speed += 2.0*acceleration
-# новые положения частиц
+    
+    # вычисление скоростей атомов
+    speed += 2.0 * acceleration
+    
+    #print(coords[0],speed[0],acceleration[0])
+    # новые положения частиц
     coords += speed + acceleration
-    coords[coords < 0] += CELL_SIZE
-    coords[coords > CELL_SIZE] -= CELL_SIZE
+    coords[coords < 0] += COUB_SIZE
+    coords[coords > COUB_SIZE] -= COUB_SIZE
 
-    print(coords[0], speed[0], acceleration[0])
+    
+    
     changePosAtoms(atoms, coords)
 # один раз за 5 (kstep) шагов результаты о координатах частиц выводятся в файл,
 # и информация о номере шага выводится на экран
