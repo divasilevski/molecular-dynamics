@@ -30,6 +30,22 @@ def initPositions():
 
 
 # VPYTHON
-print(initPositions())
+def createPoints(positions):
+    points = []
+    for p in positions:
+        p = vector(p[0], p[1], p[2])
+        points.append(sphere(pos=p, radius=0.1))
+    return points
+
+def changePosition(points, positions):
+    for i in range(len(points)):
+        p = positions[i]
+        p = vector(p[0], p[1], p[2])
+        points[i].pos = p
 
 # LIFECYCLE
+scene = canvas(width=500, height=500)
+scene.camera.pos = vector(3, 3, 3)
+scene.autoscale = False
+
+points = createPoints(initPositions())
