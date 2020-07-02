@@ -5,9 +5,12 @@ from vpython import *
 
 # CONSTANTS
 SIGMA = 0.272
-BOILING_POINT = 24.55 # https://en.wikipedia.org/wiki/Neon
+BOILING_POINT = 27.1 # https://en.wikipedia.org/wiki/Neon
+MELTING_POINT = 24.55
 TEMP_EPS = 47.0
 TEMP = BOILING_POINT / TEMP_EPS # температура релаксации
+TEMP_0 = MELTING_POINT / TEMP_EPS
+TEMP_1 = 2 * TEMP
 
 CELL_SIZE = 1.2 * SIGMA
 RANDOM_AREA = 0.8 * SIGMA
@@ -21,9 +24,9 @@ ATOM_RADIUS = CELL_SIZE / 10
 CAMERA_SIZE = 500
 CAMERA_POS = CELL_SIZE * GRID_SIZE / 2
 
-PENTA_TIME = 3
-INTEGRATION_STEP = 0.00000003
-ITERATIONS = int(PENTA_TIME / INTEGRATION_STEP)
+FULL_TIME = 3.5e-5
+INTEGRATION_STEP = 3.5e-8
+ITERATIONS = int(FULL_TIME / INTEGRATION_STEP)
 
 
 # FUNCTIONS
@@ -62,7 +65,7 @@ def initSpeed():
     v_ = np.random.uniform(-1, 1, (N_ATOM, 3))
     # нормировка амплитуд скоростей, чтобы кинетическая энергия соотвествовала начальной температуре
     velsq = np.sum(v_ ** 2)
-    aheat = 3.e0*N_ATOM * INTEGRATION_STEP ** 2 * TEMP
+    aheat = 3.0 * N_ATOM * INTEGRATION_STEP ** 2 * TEMP
     factor = np.sqrt(aheat / velsq)
 
     return v_ * factor
@@ -132,7 +135,8 @@ def changePosAtoms(atoms, positions):
 scene = canvas(width=CAMERA_SIZE, height=CAMERA_SIZE)
 scene.camera.pos = vector(CAMERA_POS, CAMERA_POS, 0)
 scene.autoscale = False
-gc = gcurve(color=color.cyan)
+gc1 = gcurve(color=color.cyan)
+gc2 = gcurve(color=color.orange)
 
 
 coords = initPositions()  # массив радиус-векторов частиц
@@ -142,16 +146,18 @@ forces = initForces()  # массив векторов сил, действую�
 
 atoms = createAtomsByPos(coords)
 energy = 0
+temp = 0
 
 # LIFECYCLE
 
 for iter in range(ITERATIONS):
-    gc.plot(pos=(iter, energy))
+    #gc1.plot(pos=(iter, energy))
+    gc2.plot(pos=(iter, temp))
 
     #scene.waitfor('click')
 
     [forces, energy] = calculation(coords, energy)
-
+    temp = energy / 3.0 * N_ATOM * INTEGRATION_STEP ** 2
     
     # energy=energy+enr
     
