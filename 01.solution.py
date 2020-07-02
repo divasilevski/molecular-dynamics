@@ -4,8 +4,11 @@ from vpython import *
 
 
 # CONSTANTS
-SIGMA = 0.272 #0.272
-TEMP = 47.0
+SIGMA = 0.272
+BOILING_POINT = 24.55 # https://en.wikipedia.org/wiki/Neon
+TEMP_EPS = 47.0
+TEMP = BOILING_POINT / TEMP_EPS # температура релаксации
+
 CELL_SIZE = 1.2 * SIGMA
 RANDOM_AREA = 0.8 * SIGMA
 CELL_IDENT = (CELL_SIZE - RANDOM_AREA) / 2
@@ -19,7 +22,7 @@ CAMERA_SIZE = 500
 CAMERA_POS = CELL_SIZE * GRID_SIZE / 2
 
 PENTA_TIME = 3
-INTEGRATION_STEP = 0.00000004
+INTEGRATION_STEP = 0.00000003
 ITERATIONS = int(PENTA_TIME / INTEGRATION_STEP)
 
 
@@ -70,7 +73,7 @@ def initForces():
     return np.zeros(N_ATOM*3).reshape(N_ATOM, 3)
 
 
-def calculation(coords):
+def calculation(coords, energy):
     for i in range(N_ATOM - 1):
         # Вычисляется разность векторов между
         # i атомом и остальными, при этом i обрезается
@@ -87,9 +90,10 @@ def calculation(coords):
         dist2Inv = 1.0 / dist2
         dist6Inv = dist2Inv * dist2Inv * dist2Inv
 
+        enr = 4.0 * dist6Inv * (dist6Inv - 1.0)
         # вектор сил взаимодействия между i j атомами
         # ВЫчисляем вектор межатомных сил
-        ff = 48 * dist2Inv * dist6Inv * (dist6Inv - 0.5)
+        ff = 48.0 * dist2Inv * dist6Inv * (dist6Inv - 0.5)
 
         # Суммируем вектор межатомных сил с разностью координат
         # Получится n - i по 3
@@ -101,8 +105,10 @@ def calculation(coords):
 
         # Добавляем i в матрицу остальные силы
         forces[i+1:] -= force_
+        
+        energy += np.sum(enr)
 
-    return forces
+    return [forces, energy]
 
 
 # VPYTHON FUNCTIONS
@@ -126,6 +132,8 @@ def changePosAtoms(atoms, positions):
 scene = canvas(width=CAMERA_SIZE, height=CAMERA_SIZE)
 scene.camera.pos = vector(CAMERA_POS, CAMERA_POS, 0)
 scene.autoscale = False
+gc = gcurve(color=color.cyan)
+
 
 coords = initPositions()  # массив радиус-векторов частиц
 acceleration = initAcceleration()  # массив ускорений
@@ -133,16 +141,18 @@ speed = initSpeed()  # массив скоростей
 forces = initForces()  # массив векторов сил, действующих на каждую частицу
 
 atoms = createAtomsByPos(coords)
-#energy = 0
+energy = 0
 
 # LIFECYCLE
 
 for iter in range(ITERATIONS):
+    gc.plot(pos=(iter, energy))
 
     #scene.waitfor('click')
 
-    forces = calculation(coords)
+    [forces, energy] = calculation(coords, energy)
 
+    
     # energy=energy+enr
     
     # вычисление (безразмерных) ускорений атомов системы
