@@ -2,7 +2,6 @@
 import numpy as np
 from vpython import *
 
-
 # CONSTANTS
 SIGMA = 0.272
 BOILING_POINT = 27.1 # https://en.wikipedia.org/wiki/Neon
@@ -24,8 +23,8 @@ ATOM_RADIUS = CELL_SIZE / 10
 CAMERA_SIZE = 500
 CAMERA_POS = CELL_SIZE * GRID_SIZE / 2
 
-FULL_TIME = 3.5e-5
-INTEGRATION_STEP = 3.5e-8
+FULL_TIME = 3e-5
+INTEGRATION_STEP = 3e-8
 ITERATIONS = int(FULL_TIME / INTEGRATION_STEP)
 
 
@@ -43,15 +42,24 @@ def calcPosByCell(cellPos):
 def initPositions():
     """ Строит первоначальное расположение атомов """
     initPos = np.empty(N_ATOM * 3).reshape(N_ATOM, 3)  # Выделяем память
+    
+    isFaceOfCube = np.empty(N_ATOM, dtype=bool)
+    check = [0 , GRID_SIZE - 1]
 
     t = 0
     for x in range(GRID_SIZE):
         for y in range(GRID_SIZE):
             for z in range(GRID_SIZE):
                 initPos[t] = calcPosByCell(np.array([x, y, z]))
+                
+                if (x in check) or (y in check) or (z in check):
+                    isFaceOfCube[t] = True
+                else: 
+                    isFaceOfCube[t] = False
+                
                 t += 1
 
-    return initPos
+    return [initPos, isFaceOfCube]
 
 
 def initAcceleration():
@@ -59,16 +67,20 @@ def initAcceleration():
     return np.empty(N_ATOM*3).reshape(N_ATOM, 3)
 
 
-def initSpeed():
+def initSpeed(isFaceOfCube):
     """ Строит случайные начальные скорости """
 
     v_ = np.random.uniform(-1, 1, (N_ATOM, 3))
     # нормировка амплитуд скоростей, чтобы кинетическая энергия соотвествовала начальной температуре
     velsq = np.sum(v_ ** 2)
-    aheat = 3.0 * N_ATOM * INTEGRATION_STEP ** 2 * TEMP
-    factor = np.sqrt(aheat / velsq)
+    
+    aheat1 = 3.0 * N_ATOM * INTEGRATION_STEP ** 2 * TEMP_1 * isFaceOfCube
+    aheat2 = 3.0 * N_ATOM * INTEGRATION_STEP ** 2 * TEMP * ~isFaceOfCube
 
-    return v_ * factor
+    
+    factor = np.sqrt(aheat1 + aheat2 / velsq)
+
+    return np.einsum('ki,k->ki', v_, factor)
 
 
 def initForces():
@@ -115,12 +127,18 @@ def calculation(coords, energy):
 
 
 # VPYTHON FUNCTIONS
-def createAtomsByPos(positions):
+def createAtomsByPos(positions, isFaceOfCube):
     """ Создание сфер-атомов """
     points = []
-    for P in positions:
+    for i in range(len(positions)):
+        P = positions[i]
         P = vector(P[0], P[1], P[2])
-        points.append(sphere(pos=P, radius=ATOM_RADIUS))
+        
+        color = vector(1, 1, 1)
+        if isFaceOfCube[i]: color = vector(1, 0, 0)
+        
+        points.append(sphere(pos=P, radius=ATOM_RADIUS, color=color))
+        
     return points
 
 
@@ -139,12 +157,12 @@ gc1 = gcurve(color=color.cyan)
 gc2 = gcurve(color=color.orange)
 
 
-coords = initPositions()  # массив радиус-векторов частиц
+[coords, isFaceOfCube] = initPositions()  # массив радиус-векторов частиц
 acceleration = initAcceleration()  # массив ускорений
-speed = initSpeed()  # массив скоростей
+speed = initSpeed(isFaceOfCube)  # массив скоростей
 forces = initForces()  # массив векторов сил, действующих на каждую частицу
 
-atoms = createAtomsByPos(coords)
+atoms = createAtomsByPos(coords, isFaceOfCube)
 energy = 0
 temp = 0
 
