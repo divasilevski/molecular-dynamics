@@ -31,6 +31,34 @@ python show.py
 
 ### Модели
 
+Первая модель имеет периодические граничные условия (бесконечная среда). Температура равна температуре кипения.
+```
+python solution.01.py
+```
 Визуализация
 
 <img src="assets/solution1.gif" alt="alt text" height="300"/>
+
+Закон сохранения энергии соблюдается
+
+<img src="assets/energy1.PNG" alt="alt text"/>
+
+Вторая модель имеет отражающие стенки
+```
+python solution.02.py
+```
+Визуализация
+
+<img src="assets/solution2.gif" alt="alt text" height="300"/>
+
+Закон сохранения энергии соблюдается
+
+<img src="assets/energy2.PNG" alt="alt text"/>
+
+Пусть при отталкивании от стенки частица приобретает температуру плавления. Энергия падает.
+
+<img src="assets/energy2a.PNG" alt="alt text"/>
+
+Частица приобретает 1.2 температуру кипения. Энергия растет.
+
+<img src="assets/energy2b.PNG" alt="alt text"/>
