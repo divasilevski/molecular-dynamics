@@ -11,7 +11,7 @@ MELTING_POINT = 24.55
 TEMP_EPS = 47.0
 TEMP = BOILING_POINT / TEMP_EPS # температура релаксации
 TEMP_0 = MELTING_POINT / TEMP_EPS
-TEMP_1 = 2 * TEMP
+TEMP_1 = 1.2 * TEMP
 
 CELL_SIZE = 1.2 * SIGMA
 RANDOM_AREA = 0.8 * SIGMA
@@ -115,8 +115,8 @@ def werleScheme(acceleration, speed, coords, forces):
 
 
 # PREPARATION
-dataCoordinates = open('data//data.coordinates.02.txt', mode='w')
-dataPlot = open('data//data.plot.02.txt', mode='w')
+dataCoordinates = open('data//data.coordinates.02b.txt', mode='w')
+dataPlot = open('data//data.plot.02b.txt', mode='w')
 print("Total energy of the system", file=dataPlot)
 
 coords = initPositions()  # массив радиус-векторов частиц
@@ -138,7 +138,7 @@ for iter in range(ITERATIONS):
     for i in range(N_ATOM - 1):
         for j in range(3):
             if (coords[i][j] <= 0) or (coords[i][j] >= COUB_SIZE):
-                speed[i] *= -np.sqrt(TEMP_0 / TEMP_0)
+                speed[i] *= -np.sqrt(TEMP_1 / TEMP)
 
     energy += np.sum(speed ** 2)
     

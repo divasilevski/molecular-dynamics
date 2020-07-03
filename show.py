@@ -4,7 +4,7 @@ from vpython import *
 SIGMA = 0.272
 CELL_SIZE = 1.2 * SIGMA
 ATOM_RADIUS = CELL_SIZE / 10
-FILE = "01"
+FILE = "02b"
 
 dataCoordinates = open("data//data.coordinates." + FILE + ".txt", "r")
 dataPlot = open("data//data.plot." + FILE + ".txt", "r")
