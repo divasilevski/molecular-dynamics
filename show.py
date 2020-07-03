@@ -1,13 +1,13 @@
 from vpython import *
-scene = canvas(width=500, height=500)
-scene.autoscale = True
 
 # CONSTANTS
 SIGMA = 0.272
 CELL_SIZE = 1.2 * SIGMA
 ATOM_RADIUS = CELL_SIZE / 10
+FILE = "01"
 
-data = open("data.coordinates.txt", "r")
+dataCoordinates = open("data//data.coordinates." + FILE + ".txt", "r")
+dataPlot = open("data//data.plot." + FILE + ".txt", "r")
 
 
 def splitToVector(splitLine):
@@ -19,7 +19,7 @@ def splitToVector(splitLine):
 
 def getNextPosition():
     positions = []
-    line = data.readline()
+    line = dataCoordinates.readline()
     while line:
         splitLine = line.split()
 
@@ -28,7 +28,7 @@ def getNextPosition():
         else:
             return positions
 
-        line = data.readline()
+        line = dataCoordinates.readline()
 
 
 def createPoints(positions):
@@ -42,9 +42,15 @@ def changePosition(points, positions):
     for i in range(len(points)):
         points[i].pos = positions[i]
 
+scene = canvas(width=500, height=500)
+scene.autoscale = True
+graph(width = 600, height = 200, title = dataPlot.readline().rstrip())
+curve = gcurve(color=color.orange)
 
 points = createPoints(getNextPosition())
 scene.waitfor('click')
+
+iter = 0
 while True:
     # sleep(0.5)
 
@@ -53,5 +59,9 @@ while True:
         changePosition(points, gnp)
     else:
         break
+    
+    curve.plot(pos=(iter, float(dataPlot.readline())))
+    iter += 1
 
-data.close()
+dataCoordinates.close()
+dataPlot.close()
