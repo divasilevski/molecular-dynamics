@@ -1,8 +1,8 @@
-# Граничные условия (отражающая стенка)
+# Периодические граничные условия (бесконечная среда)
 
 # IMPORTS
+import time
 import numpy as np
-from vpython import *
 
 # CONSTANTS
 SIGMA = 0.272
@@ -113,40 +113,19 @@ def werleScheme(acceleration, speed, coords, forces):
     
     coords += speed * INTEGRATION_STEP + acceleration * INTEGRATION_STEP * INTEGRATION_STEP / 2
 
-    
-# VPYTHON FUNCTIONS
-def createAtomsByPos(pos):
-    """ Создание сфер-атомов """
-    atoms = []
-    for i in range(len(pos)):
-        P = vector(pos[i][0], pos[i][1], pos[i][2])
-        atoms.append(sphere(pos=P, radius=ATOM_RADIUS))
-    
-    return atoms
-
-def changePosAtoms(atoms, positions):
-    """ Изменение позиций сфер-атомов """
-    for i in range(len(atoms)):
-        P = positions[i]
-        atoms[i].pos = vector(P[0], P[1], P[2])
-
 
 # PREPARATION
-scene = canvas(width=CAMERA_SIZE, height=CAMERA_SIZE)
-scene.camera.pos = vector(CAMERA_POS, CAMERA_POS, 0)
-scene.autoscale = False
-
-graph(width = 600, height = 200, title = 'Total energy of the system')
-curve = gcurve(color=color.orange)
+dataCoordinates = open('data//data.coordinates.02.txt', mode='w')
+dataPlot = open('data//data.plot.02.txt', mode='w')
+print("Total energy of the system", file=dataPlot)
 
 coords = initPositions()  # массив радиус-векторов частиц
 acceleration = initAcceleration()  # массив ускорений
 speed = initSpeed()  # массив скоростей
 forces = initForces()  # массив векторов сил, действующих на каждую частицу
 
-atoms = createAtomsByPos(coords)
-
 # LIFECYCLE
+start_time = time.time()
 for iter in range(ITERATIONS):
     
     """ Вычисление сил действующих на частицы + потенциальная энергия """
@@ -159,9 +138,18 @@ for iter in range(ITERATIONS):
     for i in range(N_ATOM - 1):
         for j in range(3):
             if (coords[i][j] <= 0) or (coords[i][j] >= COUB_SIZE):
-                speed[i] *= -np.sqrt(TEMP_0 / TEMP)
+                speed[i] *= -np.sqrt(TEMP_0 / TEMP_0)
 
-    changePosAtoms(atoms, coords)
-    
     energy += np.sum(speed ** 2)
-    curve.plot(pos=(iter, energy))
+    
+    if iter % 50 == 0: print(iter)
+    
+    for c in coords: print(c[0], c[1], c[2], file=dataCoordinates)
+    print('', file=dataCoordinates)
+    print(energy, file=dataPlot)
+
+delta_t = time.time() - start_time
+print('dynamics successfully ended in', delta_t, 'seconds') # 375 seconds
+
+dataCoordinates.close()
+dataPlot.close()
