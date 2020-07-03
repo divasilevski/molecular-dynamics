@@ -21,4 +21,8 @@ python cell.py
 ```
 построение ячейки в двух вариантах. Вариант А - расстояние между центрами атомов 0.9 *sigma*, вариант B - 1.2 *sigma*, случайное отклонение - 0.8 *sigma*. При этом радиус атома 0.12 *sigma*.
 
-![alt text](assets/option%20A.PNG) ![alt text](assets/option%20B.PNG)
+<span><img src="assets/option%20A.PNG" alt="drawing" height="300"/><img src="assets/option%20B.PNG" alt="drawing" height="300"/></span>
+
+Визуализация
+
+<img src="assets/solution1.gif" alt="alt text" height="300"/>
