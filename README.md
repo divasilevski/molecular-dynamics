@@ -59,6 +59,13 @@ python solution.02.py
 
 <img src="assets/energy2a.PNG" alt="alt text"/>
 
-Частица приобретает 1.2 температуру кипения. Энергия растет.
+Частица приобретает 1.2 температуры кипения. Энергия растет.
 
 <img src="assets/energy2b.PNG" alt="alt text"/>
+
+### Динамика
+В данных программах можно посмотреть динамическое изменение положений частиц во времени
+```
+python solution.visual.01.py
+python solution.visual.02.py
+```
